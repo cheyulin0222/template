@@ -20,10 +20,7 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.Date;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class JwtAuthService {
@@ -39,7 +36,7 @@ public class JwtAuthService {
 
     private final Random random = new Random();
 
-    public String generateToken(String username) {
+    public String generateToken(String username, List<String> roles) {
         try {
             // 隨機選擇一個私鑰
             String keyId = random.nextBoolean() ? "key1" : "key2";
@@ -61,6 +58,7 @@ public class JwtAuthService {
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(username)
                     .issueTime(new Date())
+                    .claim("roles", roles)
                     .claim("login_session_id", loginSessionId)  // 加入登入會話ID
                     .claim("initial_login_time", loginTime.getTime())
                     .expirationTime(new Date(System.currentTimeMillis() + expiration))

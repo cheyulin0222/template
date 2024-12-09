@@ -1,0 +1,5 @@
+p, admin, /object, read
+p, admin, /object, write
+p, user, /object, read
+g, alice, admin
+g, bob, user

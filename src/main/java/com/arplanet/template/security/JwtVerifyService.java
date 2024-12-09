@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
 import java.security.KeyFactory;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@Service
 public class JwtVerifyService {
 
     @Value("${jwt.public-key1}")

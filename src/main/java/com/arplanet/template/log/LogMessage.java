@@ -1,5 +1,6 @@
 package com.arplanet.template.log;
 
+import com.arplanet.template.serializer.TimestampToTaipeiISOSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,8 @@ public class LogMessage {
 
     private String project;
 
+    private String stage;
+
     private String instanceId;
 
     private String sessionId;
@@ -21,10 +24,24 @@ public class LogMessage {
 
     private String logSn;
 
-    private Map<String, Object> payload;
+    private String method;
+
+    private String uri;
+
+    private String logLevel;
+
+    private String className;
+
+    private String methodName;
+
+    private String message;
+
+    private Map<String, Object> context;
+
+    private ErrorData errorData;
 
     private String version;
 
-    @JsonSerialize(using = CustomTimestampSerializer.class)
+    @JsonSerialize(using = TimestampToTaipeiISOSerializer.class)
     private Timestamp timestamp;
 }
