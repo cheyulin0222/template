@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class LoginRequest {
+public class AuthenticationRequest {
 
     @Schema(description = "使用者名稱")
     @NotBlank

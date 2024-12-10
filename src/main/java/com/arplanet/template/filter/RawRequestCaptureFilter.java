@@ -2,6 +2,9 @@ package com.arplanet.template.filter;
 
 import com.arplanet.template.log.LogContext;
 import com.arplanet.template.log.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,15 +16,23 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static com.arplanet.template.exception.ErrorType.SYSTEM;
 
 @RequiredArgsConstructor
 public class RawRequestCaptureFilter extends OncePerRequestFilter {
 
+    private static final List<String> SENSITIVE_PATHS = Arrays.asList(
+            "/auth/login",
+            "/auth/register",
+            "/api/auth/login",
+            "/api/auth/register"
+    );
+
     private final Logger logger;
     private final LogContext logContext;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
@@ -35,10 +46,8 @@ public class RawRequestCaptureFilter extends OncePerRequestFilter {
 
         request.setAttribute("requestId", requestId);
 
-        String requestURL = request.getRequestURL().toString();
-        if (request.getQueryString() != null) {
-            requestURL += "?" + request.getQueryString();
-        }
+        final String requestURL = request.getRequestURL().toString() +
+                (request.getQueryString() != null ? "?" + request.getQueryString() : "");
 
         String method = request.getMethod();
         Map<String, String> headers = extractHeaders(request);
@@ -49,6 +58,24 @@ public class RawRequestCaptureFilter extends OncePerRequestFilter {
             filterChain.doFilter(requestWrapper, response);
         } finally {
             String requestBody = new String(requestWrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+
+            boolean isSensitiveEndpoint = SENSITIVE_PATHS.stream()
+                    .anyMatch(requestURL::contains);
+
+            if (isSensitiveEndpoint) {
+                try {
+                    JsonNode jsonNode = objectMapper.readTree(requestBody);
+
+                    if (jsonNode instanceof ObjectNode objectNode) {
+                        if (objectNode.has("password")) {
+                            objectNode.put("password", "******");
+                        }
+                        requestBody = objectNode.toString();
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to mask password in request body", e, SYSTEM);
+                }
+            }
 
             HashMap<String, Object> rawData = new HashMap<>();
             rawData.put("method", method);

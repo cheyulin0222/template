@@ -2,6 +2,7 @@ package com.arplanet.template.filter;
 
 import com.arplanet.template.log.LogContext;
 import com.arplanet.template.log.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +12,8 @@ import org.springframework.core.Ordered;
 public class RequestCaptureFilterConfig {
 
     @Bean
-    public RawRequestCaptureFilter rawRequestCaptureFilter(Logger logger, LogContext logContext) {
-        return new RawRequestCaptureFilter(logger, logContext);
+    public RawRequestCaptureFilter rawRequestCaptureFilter(Logger logger, LogContext logContext, ObjectMapper objectMapper) {
+        return new RawRequestCaptureFilter(logger, logContext, objectMapper);
     }
 
     @Bean

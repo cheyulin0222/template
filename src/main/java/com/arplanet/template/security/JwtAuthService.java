@@ -1,14 +1,11 @@
 package com.arplanet.template.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -16,10 +13,7 @@ import org.springframework.core.io.Resource;
 import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 
 @Slf4j
@@ -44,7 +38,7 @@ public class JwtAuthService {
                     loadPrivateKey(privateKeyResource1) :
                     loadPrivateKey(privateKeyResource2);
 
-            JWSSigner signer = new RSASSASigner((RSAPrivateKey) privateKey);
+            JWSSigner signer = new RSASSASigner(privateKey);
 
             // 建立JWT
             JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.RS256)
@@ -73,47 +67,6 @@ public class JwtAuthService {
             throw new RuntimeException("Could not generate token", e);
         }
     }
-
-//    public Claims extractAllClaims(String token) {
-//        return Jwts.parser()
-//                .verifyWith(getSigningKey())
-//                .build()
-//                .parseSignedClaims(token)
-//                .getPayload();
-//    }
-//
-//    public Claims extractPayload(String token) {
-//        // 將 token 分成三部分
-//        String[] chunks = token.split("\\.");
-//
-//        // base64 decode payload (第二部分)
-//        Base64.Decoder decoder = Base64.getUrlDecoder();
-//        String payload = new String(decoder.decode(chunks[1]));
-//
-//        // 轉換成 Claims 對象
-//        ObjectMapper mapper = new ObjectMapper();
-//        try {
-//            return mapper.readValue(payload, Claims.class);
-//        } catch (Exception e) {
-//            throw new RuntimeException("Failed to parse token payload", e);
-//        }
-//    }
-//
-//    public PublicKey getSigningKey() {
-//        try {
-//            String key = new String(Files.readAllBytes(publicKeyResource.getFile().toPath()))
-//                    .replace("-----BEGIN PUBLIC KEY-----", "")
-//                    .replace("-----END PUBLIC KEY-----", "")
-//                    .replaceAll("\\s", "");
-//
-//            byte[] decoded = Base64.getDecoder().decode(key);
-//            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
-//            KeyFactory kf = KeyFactory.getInstance("RSA");
-//            return kf.generatePublic(keySpec);
-//        } catch (Exception e) {
-//            throw new RuntimeException("Error loading public key", e);
-//        }
-//    }
 
     private PrivateKey loadPrivateKey(Resource resource) throws Exception {
         String key = new String(Files.readAllBytes(resource.getFile().toPath()))
