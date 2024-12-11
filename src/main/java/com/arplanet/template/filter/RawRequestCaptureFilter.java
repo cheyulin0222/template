@@ -43,7 +43,6 @@ public class RawRequestCaptureFilter extends OncePerRequestFilter {
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 
         String requestId = logContext.generateId("request");
-
         request.setAttribute("requestId", requestId);
 
         final String requestURL = request.getRequestURL().toString() +

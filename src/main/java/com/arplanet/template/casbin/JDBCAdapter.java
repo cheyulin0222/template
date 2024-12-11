@@ -5,12 +5,14 @@ import com.arplanet.template.repository.CasbinRuleRepository;
 import lombok.RequiredArgsConstructor;
 import org.casbin.jcasbin.model.Model;
 import org.casbin.jcasbin.persist.Adapter;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
+@Component
 public class JDBCAdapter implements Adapter {
 
     private final CasbinRuleRepository casbinRuleRepository;
@@ -66,12 +68,12 @@ public class JDBCAdapter implements Adapter {
 
     private String ruleToString(CasbinRule rule) {
         return String.format("%s:%s:%s:%s",
-                rule.getPType(), rule.getV0(), rule.getV1(), rule.getV2());
+                rule.getPtype(), rule.getV0(), rule.getV1(), rule.getV2());
     }
 
     private CasbinRule createRule(String ptype, List<String> policy) {
         CasbinRule rule = new CasbinRule();
-        rule.setPType(ptype);
+        rule.setPtype(ptype);
         if (!policy.isEmpty()) rule.setV0(policy.get(0));
         if (policy.size() > 1) rule.setV1(policy.get(1));
         if (policy.size() > 2) rule.setV2(policy.get(2));
@@ -81,7 +83,7 @@ public class JDBCAdapter implements Adapter {
     @Override
     public void addPolicy(String ptype, String key, List<String> policy) {
         CasbinRule rule = new CasbinRule();
-        rule.setPType(ptype);
+        rule.setPtype(ptype);
         for (int i = 0; i < policy.size(); i++) {
             switch (i) {
                 case 0: rule.setV0(policy.get(i)); break;
@@ -161,8 +163,8 @@ public class JDBCAdapter implements Adapter {
 
         if (!values.isEmpty()) {
             // p 型別的放在 p section，g 型別的放在 g section
-            String section = "p".equals(line.getPType()) ? "p" : "g";
-            model.addPolicy(section, line.getPType(), values);
+            String section = "p".equals(line.getPtype()) ? "p" : "g";
+            model.addPolicy(section, line.getPtype(), values);
         }
     }
 }

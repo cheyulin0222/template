@@ -2,6 +2,7 @@ package com.arplanet.template.casbin;
 
 import com.arplanet.template.enums.ResultMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.casbin.jcasbin.main.Enforcer;
 import org.springframework.stereotype.Service;
 
@@ -11,11 +12,13 @@ import static com.arplanet.template.enums.ResultMessage.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CasbinService {
 
     private final Enforcer enforcer;
 
     public boolean checkPermission(String username, String resource, String action) {
+        log.info("userName={}, resource={}, action={}", username, resource, action);
         return enforcer.enforce(username, resource, action);
     }
 

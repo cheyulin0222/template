@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface CasbinRuleRepository extends JpaRepository<CasbinRule, Long> {
 
-    List<CasbinRule> findByPtype(String ptype);
-    List<CasbinRule> findByPtypeAndV0(String ptype, String v0);
+    List<CasbinRule> findByPtype(String pType);
+    List<CasbinRule> findByPtypeAndV0(String pType, String v0);
 }

@@ -9,6 +9,7 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
 import java.security.KeyFactory;
@@ -17,6 +18,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
 
 @Slf4j
+@Service
 public class JwtAuthService {
 
     @Value("${jwt.private-key1}")
@@ -25,8 +27,7 @@ public class JwtAuthService {
     @Value("${jwt.private-key2}")
     private Resource privateKeyResource2;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    private final static Long EXPIRATION = 24 * 60 * 60 * 1000L;
 
     private final Random random = new Random();
 
@@ -55,7 +56,7 @@ public class JwtAuthService {
                     .claim("roles", roles)
                     .claim("login_session_id", loginSessionId)  // 加入登入會話ID
                     .claim("initial_login_time", loginTime.getTime())
-                    .expirationTime(new Date(System.currentTimeMillis() + expiration))
+                    .expirationTime(new Date(System.currentTimeMillis() + EXPIRATION))
                     .build();
 
             SignedJWT signedJWT = new SignedJWT(header, claimsSet);

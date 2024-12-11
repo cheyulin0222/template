@@ -1,23 +1,26 @@
 package com.arplanet.template.casbin;
 
+import lombok.RequiredArgsConstructor;
 import org.casbin.jcasbin.main.Enforcer;
-import org.casbin.jcasbin.persist.Adapter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 
 @Configuration
+@RequiredArgsConstructor
 public class CasbinConfig {
 
+    private final JDBCAdapter jdbcAdapter;
+
     @Bean
-    public Enforcer enforcer(@Qualifier("casbinDataSource") DataSource dataSource) {
-
-        String modelPath = "classpath:casbin/model.conf";
-        Adapter adapter = new JDBCAdapter(dataSource);
-
-        // 配置 Casbin Enforcer，使用模型文件和数据库适配器
-        return new Enforcer(modelPath, adapter);
+    public Enforcer enforcer() throws IOException {
+        Resource resource = new ClassPathResource("casbin/model.conf");
+        String modelPath = resource.getFile().getAbsolutePath();
+        return new Enforcer(modelPath, jdbcAdapter);
     }
 }

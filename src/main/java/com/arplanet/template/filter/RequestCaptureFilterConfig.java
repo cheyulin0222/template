@@ -17,12 +17,12 @@ public class RequestCaptureFilterConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<RawRequestCaptureFilter> rawRequestCaptureFilter(RawRequestCaptureFilter filter) {
+    public FilterRegistrationBean<RawRequestCaptureFilter> filterRegistrationBean(RawRequestCaptureFilter filter) {
         FilterRegistrationBean<RawRequestCaptureFilter> registrationBean = new FilterRegistrationBean<>();
 
         registrationBean.setFilter(filter);
         registrationBean.addUrlPatterns("/*");
-        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registrationBean.setOrder(-104);
 
         return registrationBean;
     }

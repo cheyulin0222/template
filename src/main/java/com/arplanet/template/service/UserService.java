@@ -19,7 +19,7 @@ public class UserService {
     public User createUser(String username, String password) {
 
 
-        Optional<User> optional = userRepository.findByUsername(username);
+        Optional<User> optional = userRepository.findByEmail(username);
 
         if (optional.isPresent()) {
             throw new RuntimeException("帳號已存在");
