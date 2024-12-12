@@ -2,18 +2,20 @@ package com.arplanet.template.log;
 
 import com.arplanet.template.security.JwtVerifyService;
 import io.jsonwebtoken.Claims;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Properties;
 import java.util.UUID;
 
 @Component
@@ -24,6 +26,7 @@ public class LogContext {
     
     private final HttpServletRequest request;
     private final JwtVerifyService jwtVerifyService;
+
 
     @Value("${cloud.aws.instance.id:unknown}")
     private String instanceId;
@@ -38,27 +41,15 @@ public class LogContext {
     private String project;
 
     public String getSessionId() {
-        try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getCredentials() instanceof String token) {
-                Claims claims = jwtVerifyService.extractPayloadWithoutVerification(token);
+        String token = jwtVerifyService.extractToken(request);
 
-                String loginSessionId = claims.get("login_session_id", String.class);
-                if (loginSessionId != null) {
-                    return loginSessionId;
-                }
-
-                String username = claims.getSubject();
-                Long loginTime = claims.get("initial_login_time", Long.class);
-                if (username != null && loginTime != null) {
-                    return username + "-" + loginTime;
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Failed to extract session id from token", e);
+        if (token != null) {
+            Claims claims = jwtVerifyService.extractPayloadWithoutVerification(token);
+            return (String) claims.get("login_session_id");
         }
 
         return null;
+
     }
 
     public String getRequestId() {
@@ -80,7 +71,7 @@ public class LogContext {
     public String getClassName() {
         return StackWalker.getInstance()
                 .walk(frames -> frames
-                        .skip(2)
+                        .skip(3)
                         .findFirst()
                         .map(StackWalker.StackFrame::getClassName)
                         .orElse("Unknown"));
@@ -89,7 +80,7 @@ public class LogContext {
     public String getMethodName() {
         return StackWalker.getInstance()
                 .walk(frames -> frames
-                        .skip(2)
+                        .skip(3)
                         .findFirst()
                         .map(StackWalker.StackFrame::getMethodName)
                         .orElse("Unknown"));

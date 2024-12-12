@@ -5,10 +5,13 @@ import com.nimbusds.jwt.SignedJWT;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.nio.file.Files;
 import java.security.KeyFactory;
@@ -20,6 +23,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class JwtVerifyService {
 
     @Value("${jwt.public-key1}")
@@ -29,6 +33,8 @@ public class JwtVerifyService {
     private Resource publicKeyResource2;
 
     private Map<String, PublicKey> publicKeys;
+
+    private final ObjectMapper mapper;
 
     @PostConstruct
     public void init() {
@@ -64,17 +70,31 @@ public class JwtVerifyService {
     }
 
     public Claims extractPayloadWithoutVerification(String token) {
+        // 檢查 Token 是否有三部分
+        if (token == null || token.split("\\.").length != 3) {
+            throw new IllegalArgumentException("Invalid JWT token format");
+        }
+
         // 將 token 分成三部分
         String[] chunks = token.split("\\.");
 
         // base64 decode payload (第二部分)
         Base64.Decoder decoder = Base64.getUrlDecoder();
-        String payload = new String(decoder.decode(chunks[1]));
-
-        // 轉換成 Claims 對象
-        ObjectMapper mapper = new ObjectMapper();
+        String payload;
         try {
-            return mapper.readValue(payload, Claims.class);
+            payload = new String(decoder.decode(chunks[1]));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Failed to decode JWT token payload", e);
+        }
+
+        try {
+            // 將 Map 轉換為 Claims 物件
+            Map<String, Object> map = mapper.readValue(payload, Map.class);
+
+            // 使用 Jwts.builder() 手動建構 Claims 物件
+            Claims claims = Jwts.claims(map);
+            return claims;
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse token payload", e);
         }
@@ -90,5 +110,13 @@ public class JwtVerifyService {
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return kf.generatePublic(keySpec);
+    }
+
+    public String extractToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }
