@@ -10,11 +10,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +25,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class LoggingFilter extends OncePerRequestFilter {
 
     private final Logger logger;
@@ -34,31 +35,41 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
-        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
         String requestId = logContext.generateId("request");
         request.setAttribute("requestId", requestId);
 
+        if (isJsonRequest(request)) {
+            request = new ContentCachingRequestWrapper(request);
+        }
+
         try {
-            filterChain.doFilter(requestWrapper, responseWrapper);
+            filterChain.doFilter(request, response);
         } finally {
-            logRequest(requestWrapper);
-            logResponse(responseWrapper);
+
+//            if (isJsonResponse(response)) {
+//                ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+//                logResponse(responseWrapper);
+//                responseWrapper.copyBodyToResponse();
+//            } else {
+//                logResponse(response);
+//            }
+
+            logRequest(request);
         }
     }
 
-    private void logRequest(ContentCachingRequestWrapper request) {
-        // 基本信息
+    private void logRequest(HttpServletRequest request) {
+
         HashMap<String, Object> rawData = new HashMap<>();
         rawData.put("method", request.getMethod());
         rawData.put("requestURL", getFullURL(request));
         rawData.put("headers", extractHeaders(request));
         rawData.put("IP", request.getRemoteAddr());
 
-        // 如果是 JSON 請求，添加處理過的 body
         if (isJsonRequest(request)) {
-            String requestBody = new String(request.getContentAsByteArray(), StandardCharsets.UTF_8);
+            log.info("IS JSON REQUEST");
+            String requestBody = new String(((ContentCachingRequestWrapper) request).getContentAsByteArray(), StandardCharsets.UTF_8);
             rawData.put("body", maskSensitiveInfo(requestBody));
         }
 
@@ -70,7 +81,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         return contentType != null && contentType.toLowerCase().contains("application/json");
     }
 
-    private boolean isJsonResponse(ContentCachingResponseWrapper response) {
+    private boolean isJsonResponse(HttpServletResponse response) {
         String contentType = response.getContentType();
         return contentType != null && contentType.toLowerCase().contains("application/json");
     }
@@ -100,22 +111,23 @@ public class LoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    private void logResponse(ContentCachingResponseWrapper response) {
+    private void logResponse(HttpServletResponse response) {
         HashMap<String, Object> responseData = new HashMap<>();
         responseData.put("statusCode", response.getStatus());
         responseData.put("contentType", response.getContentType());
         responseData.put("headers", getResponseHeaders(response));
 
-        // 如果是 JSON 響應，添加 body
-        if (isJsonResponse(response)) {
-            String responseBody = new String(response.getContentAsByteArray(), StandardCharsets.UTF_8);
-            responseData.put("body", responseBody);
-        }
+//        // 如果是 JSON 響應，添加 body
+//        if (isJsonResponse(response)) {
+//            log.info("IS JSON RESPONSE");
+//            String responseBody = new String(((ContentCachingResponseWrapper) response).getContentAsByteArray(), StandardCharsets.UTF_8);
+//            responseData.put("body", responseBody);
+//        }
 
         logger.info("Response", responseData);
     }
 
-    private String getFullURL(ContentCachingRequestWrapper request) {
+    private String getFullURL(HttpServletRequest request) {
         return request.getRequestURL().toString() +
                 (request.getQueryString() != null ? "?" + request.getQueryString() : "");
     }
@@ -141,7 +153,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         return headers;
     }
 
-    private Map<String, String> getResponseHeaders(ContentCachingResponseWrapper response) {
+    private Map<String, String> getResponseHeaders(HttpServletResponse response) {
         Map<String, String> headers = new HashMap<>();
         Collection<String> headerNames = response.getHeaderNames();
         for (String headerName : headerNames) {

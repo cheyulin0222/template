@@ -2,6 +2,7 @@ package com.arplanet.template.service;
 
 import com.arplanet.template.repository.UserRepository;
 import com.arplanet.template.domain.User;
+import com.arplanet.template.res.UserCreateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User createUser(String username, String password) {
+    public UserCreateResponse createUser(String username, String password) {
 
 
         Optional<User> optional = userRepository.findByEmail(username);
@@ -30,7 +31,11 @@ public class UserService {
                 .password(passwordEncoder.encode(password))
                 .build();
 
-        return userRepository.save(user);
+        userRepository.save(user);
+
+        return UserCreateResponse.builder()
+                .email(user.getEmail())
+                .build();
     }
 
     public List<User> findAll() {

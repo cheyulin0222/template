@@ -8,7 +8,7 @@ import lombok.Data;
 @Builder
 public class ErrorData {
 
-    private String error;
+    private String message;
 
     private ErrorType errorType;
 

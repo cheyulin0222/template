@@ -10,6 +10,7 @@ import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -48,4 +49,31 @@ public class SwaggerConfig {
                 )
                 .servers(List.of(new Server().url(contextPath)));
     }
+
+//    @Bean
+//    public OpenAPI openAPI() {
+//        final String securitySchemeName = "bearerAuth";
+//
+//        // 確保 contextPath 不為空
+//        String baseUrl = StringUtils.hasText(contextPath) ? contextPath : "/";
+//
+//        return new OpenAPI()
+//                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+//                .components(new Components()
+//                        .addSecuritySchemes(securitySchemeName,
+//                                new SecurityScheme()
+//                                        .name(securitySchemeName)
+//                                        .type(SecurityScheme.Type.HTTP)
+//                                        .scheme("bearer")
+//                                        .bearerFormat("JWT")
+//                        )
+//                )
+//                .info(new Info()
+//                        .title(applicationName + " API Documentation")
+//                        .version("1.0.0")
+//                        .description("API Document for " + applicationName)
+//                )
+//                .servers(List.of(new Server().url(baseUrl)
+//                        .description("Server URL in Development environment")));
+//    }
 }

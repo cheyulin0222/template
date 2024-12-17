@@ -2,13 +2,11 @@ package com.arplanet.template.casbin;
 
 import lombok.RequiredArgsConstructor;
 import org.casbin.jcasbin.main.Enforcer;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 
 @Configuration

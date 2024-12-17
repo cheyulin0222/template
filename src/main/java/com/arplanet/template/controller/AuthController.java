@@ -42,7 +42,7 @@ public class AuthController {
     @Operation(summary = "註冊")
     public ResponseEntity<JwtResponse> regitster(@Valid @RequestBody AuthenticationRequest request) {
 
-        User user = userService.createUser(request.getUsername(), request.getPassword());
+        var user = userService.createUser(request.getUsername(), request.getPassword());
 
         casbinService.addRoleForUser(user.getEmail(), "user");
 

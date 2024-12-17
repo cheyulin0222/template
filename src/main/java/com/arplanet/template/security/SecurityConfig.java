@@ -126,4 +126,5 @@ public class SecurityConfig {
                 .map(SecurityUser::new)  // 包裝成 SecurityUser
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
 }

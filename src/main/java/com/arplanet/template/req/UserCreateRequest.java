@@ -5,13 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class RoleForUserAddRequest {
+public class UserCreateRequest {
 
     @Schema(description = "帳號")
     @NotBlank
-    private String username;
+    private String email;
 
-    @Schema(description = "角色")
+    @Schema(description = "密碼")
     @NotBlank
-    private String role;
+    private String password;
 }

@@ -33,7 +33,7 @@ public class Logger {
 
     public void error(String message, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
-                .error(message)
+                .message(message)
                 .errorType(errorType)
                 .build();
 
@@ -42,7 +42,7 @@ public class Logger {
 
     public void error(String message, Map<String, Object> payload, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
-                .error(message)
+                .message(message)
                 .errorType(errorType)
                 .build();
 
@@ -51,7 +51,7 @@ public class Logger {
 
     public void error(String message, Throwable error, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
-                .error(message + " | " + error.getMessage())
+                .message(message + " | " + error.getMessage())
                 .errorType(errorType)
                 .stackTrace(Arrays.toString(error.getStackTrace()))
                 .build();
@@ -61,7 +61,7 @@ public class Logger {
 
     public void error(String message, Throwable error, Map<String, Object> context, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
-                .error(message + " | " + error.getMessage())
+                .message(message + " | " + error.getMessage())
                 .errorType(errorType)
                 .stackTrace(Arrays.toString(error.getStackTrace()))
                 .build();
