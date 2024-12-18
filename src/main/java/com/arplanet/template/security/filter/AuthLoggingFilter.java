@@ -2,6 +2,9 @@ package com.arplanet.template.security.filter;
 
 import com.arplanet.template.log.LogContext;
 import com.arplanet.template.log.Logger;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,12 +19,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.arplanet.template.exception.ErrorType.SYSTEM;
+
 @RequiredArgsConstructor
 @Slf4j
-public class LoggingFilter extends OncePerRequestFilter {
+public class AuthLoggingFilter extends OncePerRequestFilter {
 
     private final Logger logger;
     private final LogContext logContext;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -29,9 +35,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         String requestId = logContext.generateId("request");
         request.setAttribute("requestId", requestId);
 
-        if (isJsonRequest(request)) {
-            request = new ContentCachingRequestWrapper(request);
-        }
+        request = new ContentCachingRequestWrapper(request);
 
         try {
             filterChain.doFilter(request, response);
@@ -49,25 +53,30 @@ public class LoggingFilter extends OncePerRequestFilter {
         rawData.put("headers", extractHeaders(request));
         rawData.put("IP", request.getRemoteAddr());
 
-        if (isJsonRequest(request)) {
+        try {
             String requestBody = new String(((ContentCachingRequestWrapper) request).getContentAsByteArray(), StandardCharsets.UTF_8);
-            rawData.put("request_body", requestBody);
+            JsonNode jsonNode = objectMapper.readTree(requestBody);
+
+            if (jsonNode instanceof ObjectNode objectNode) {
+                maskSensitiveFields(objectNode);
+                HashMap<String, Object> sensitiveData = new HashMap<>();
+                sensitiveData.put("request_body", objectNode);
+                logger.info("Request Details", sensitiveData);
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to process sensitive data", e, SYSTEM);
         }
 
         logger.info("Request Details", rawData);
     }
 
-    private boolean isJsonRequest(HttpServletRequest request) {
-        String contentType = request.getContentType();
-        return contentType != null && contentType.toLowerCase().contains("application/json");
-    }
-
-    private void logResponse(HttpServletResponse response) {
-        HashMap<String, Object> responseData = new HashMap<>();
-        responseData.put("statusCode", response.getStatus());
-        responseData.put("headers", getResponseHeaders(response));
-
-        logger.info("Response Metadata", responseData);
+    private void maskSensitiveFields(ObjectNode objectNode) {
+        Arrays.asList("password", "newPassword", "confirmPassword").forEach(field -> {
+            if (objectNode.has(field)) {
+                objectNode.put(field, "******");
+            }
+        });
     }
 
     private String getFullURL(HttpServletRequest request) {
@@ -96,6 +105,14 @@ public class LoggingFilter extends OncePerRequestFilter {
         return headers;
     }
 
+    private void logResponse(HttpServletResponse response) {
+        HashMap<String, Object> responseData = new HashMap<>();
+        responseData.put("statusCode", response.getStatus());
+        responseData.put("headers", getResponseHeaders(response));
+
+        logger.info("Response Metadata", responseData);
+    }
+
     private Map<String, String> getResponseHeaders(HttpServletResponse response) {
         Map<String, String> headers = new HashMap<>();
         Collection<String> headerNames = response.getHeaderNames();
@@ -104,4 +121,5 @@ public class LoggingFilter extends OncePerRequestFilter {
         }
         return headers;
     }
+
 }

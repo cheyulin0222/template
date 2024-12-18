@@ -2,20 +2,16 @@ package com.arplanet.template.log;
 
 import com.arplanet.template.security.JwtVerifyService;
 import io.jsonwebtoken.Claims;
-import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Properties;
 import java.util.UUID;
 
 @Component
@@ -38,7 +34,7 @@ public class LogContext {
     private String gitVersion;
 
     @Value("${spring.application.name}")
-    private String project;
+    private String projectId;
 
     public String getSessionId() {
         String token = jwtVerifyService.extractToken(request);
@@ -91,6 +87,6 @@ public class LogContext {
         String timestamp = LocalDateTime.now(taipeiZone)
                 .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-        return "%s-%s-%s-%s".formatted(prefix, getProject(), timestamp, UUID.randomUUID().toString());
+        return "%s-%s-%s-%s".formatted(prefix, getProjectId(), timestamp, UUID.randomUUID().toString());
     }
 }

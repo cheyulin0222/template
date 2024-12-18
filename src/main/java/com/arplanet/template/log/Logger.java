@@ -72,7 +72,7 @@ public class Logger {
     private void log(LogLevel level, String message, Map<String, Object> context, ErrorData errorData) {
         try {
             LogMessage logMessage = LogMessage.builder()
-                    .project(logContext.getProject())
+                    .projectId(logContext.getProjectId())
                     .stage(logContext.getActiveProfile())
                     .instanceId(logContext.getInstanceId())
                     .sessionId(logContext.getSessionId())
@@ -95,14 +95,33 @@ public class Logger {
                     .build();
 
             String jsonLog = objectMapper.writeValueAsString(logMessage);
+            boolean enableMessageLogging = "dev".equals(logContext.getActiveProfile()) || "test".equals(logContext.getActiveProfile());
+
 
             switch (level) {
-                case INFO -> log.info("{}", jsonLog);
-                case ERROR -> log.error("{}", jsonLog);
-                default -> log.debug("{}", jsonLog);
+                case INFO -> {
+                    if (enableMessageLogging) {
+                        log.info("{}", message);
+                    }
+                    log.info("{}", jsonLog);
+                }
+                case ERROR -> {
+                    if (enableMessageLogging) {
+                        log.info("{}", message);
+                    }
+                    log.error("{}", jsonLog);
+                }
+                default -> {
+                    if (enableMessageLogging) {
+                        log.info("{}", message);
+                    }
+                    log.debug("{}", jsonLog);
+                }
             }
         } catch (JsonProcessingException e) {
             log.error("Error creating JSON log", e);
         }
     }
+
+
 }

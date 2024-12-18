@@ -13,7 +13,7 @@ public enum ErrorType {
 
     private final String label;
 
-    private ErrorType (String message) {
+    ErrorType(String message) {
         this.label = message;
     }
 

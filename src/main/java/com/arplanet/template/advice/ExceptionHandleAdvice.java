@@ -7,6 +7,7 @@ import com.arplanet.template.utils.ClassTool;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Slf4j
 public class ExceptionHandleAdvice {
 
     private final Logger logger;
@@ -37,16 +39,22 @@ public class ExceptionHandleAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationError(HttpServletRequest req, MethodArgumentNotValidException ex) {
 
-        logger.error(ex.getMessage(), ex, REQUEST);
+        String errMsg = extractedBindingResult(ex.getBindingResult());
 
-        return extractedBindingResult(ex.getBindingResult());
+        logger.error(errMsg, ex, REQUEST);
+
+        return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ErrorResponse>  handleValidationError(HttpServletRequest req,BindException ex) {
-        logger.error(ex.getMessage(), ex, REQUEST);
 
-        return extractedBindingResult(ex.getBindingResult());
+
+        String errMsg = extractedBindingResult(ex.getBindingResult());
+
+        logger.error(errMsg, ex, REQUEST);
+
+        return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -56,7 +64,7 @@ public class ExceptionHandleAdvice {
         return wrapperExceptionResponse(BAD_REQUEST, ExceptionUtils.getRootCauseMessage(ex));
     }
 
-    private ResponseEntity<ErrorResponse> extractedBindingResult(BindingResult bindingResult) {
+    private String extractedBindingResult(BindingResult bindingResult) {
 
         StringBuilder errorMessagesData = new StringBuilder();
         HashMap<String , Field> Fields = ClassTool.getAllField(Objects.requireNonNull(bindingResult.getTarget()));
@@ -81,7 +89,8 @@ public class ExceptionHandleAdvice {
             errorMessagesData.append(error.getDefaultMessage());
         }
 
-        return wrapperExceptionResponse(BAD_REQUEST, errorMessagesData.toString());
+        return errorMessagesData.toString();
+
     }
 
 

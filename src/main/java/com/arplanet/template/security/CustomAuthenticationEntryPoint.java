@@ -27,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         var errorResponse = ExceptionHandleAdvice.wrapperExceptionResponse(HttpStatus.FORBIDDEN,"Forbidden");
 
         try {
-            logger.error("AuthenticationException error !!", authException, ErrorType.AUTHORITY);
+            logger.error("AuthenticationException error", authException, ErrorType.AUTHORITY);
             response.setStatus(SC_FORBIDDEN);
             response.setContentType("application/json;charset=UTF-8");
             response.setCharacterEncoding("UTF-8");

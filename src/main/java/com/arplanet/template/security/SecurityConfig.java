@@ -1,9 +1,10 @@
 package com.arplanet.template.security;
 
+import com.arplanet.template.security.filter.FilterFactory;
 import com.arplanet.template.security.filter.JwtAuthenticationFilter;
-import com.arplanet.template.security.filter.LoggingFilter;
 import com.arplanet.template.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -25,24 +26,27 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.session.DisableEncodeUrlFilter;
 
 
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final UserRepository userRepository;
-    private final LoggingFilter loggingFilter;
+    private final FilterFactory filterFactory;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     @Order(1)
     public SecurityFilterChain authFilterChain(HttpSecurity http) throws Exception {
+        log.info("Matched authFilterChain for path: /auth/**");
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityMatcher("/auth/login", "/auth/register")
-                .addFilterBefore(loggingFilter, DisableEncodeUrlFilter.class)
+                .addFilterBefore(filterFactory.getAuthLoggingFilter(), DisableEncodeUrlFilter.class)
                 .authorizeHttpRequests(authorize ->
                         authorize.anyRequest().permitAll()
                 )
@@ -57,7 +61,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .securityMatcher("/swagger-ui/**", "/v3/**")
-                .addFilterBefore(loggingFilter, DisableEncodeUrlFilter.class)
+                .addFilterBefore(filterFactory.getLoggingFilter(), DisableEncodeUrlFilter.class)
                 .authorizeHttpRequests(authorize ->
                         authorize.anyRequest().permitAll()
                 )
@@ -75,32 +79,13 @@ public class SecurityConfig {
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
-                .addFilterBefore(loggingFilter, DisableEncodeUrlFilter.class)
+                .addFilterBefore(filterFactory.getLoggingFilter(), DisableEncodeUrlFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize ->
                         authorize.anyRequest().authenticated()
                 )
                 .build();
     }
-
-
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
-//        return http
-//                .cors(Customizer.withDefaults())
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(authorize ->
-//                        authorize
-//                                .requestMatchers(PERMIT_URLS).permitAll()
-//                                .anyRequest().authenticated()
-//                )
-//                .addFilterBefore(
-//                        jwtAuthenticationFilter,
-//                        UsernamePasswordAuthenticationFilter.class
-//                )
-//                .build();
-//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
