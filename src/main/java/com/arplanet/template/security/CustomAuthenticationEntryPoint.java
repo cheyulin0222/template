@@ -12,7 +12,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static com.arplanet.template.log.enums.BasicActionType.AUTHENTICATION;
+import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @RequiredArgsConstructor
 @Component
@@ -24,18 +25,18 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)  {
 
-        var errorResponse = ExceptionHandleAdvice.wrapperExceptionResponse(HttpStatus.FORBIDDEN,"Forbidden");
+        var errorResponse = ExceptionHandleAdvice.wrapperExceptionResponse(HttpStatus.UNAUTHORIZED, "Unauthorized");
 
         try {
-            logger.error("AuthenticationException error", authException, ErrorType.AUTHORITY);
-            response.setStatus(SC_FORBIDDEN);
+            logger.error("Authentication error", AUTHENTICATION, authException, ErrorType.AUTH);
+            response.setStatus(SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
             response.setCharacterEncoding("UTF-8");
             var  out = response.getWriter();
             out.print(objectMapper.writeValueAsString(errorResponse.getBody()));
             out.flush();
         } catch (Exception e) {
-            logger.error("Authority failed !!!", e, ErrorType.AUTHORITY);
+            logger.error("Authentication failed", AUTHENTICATION, e, ErrorType.AUTH);
         }
     }
 }

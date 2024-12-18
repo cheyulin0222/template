@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.arplanet.template.log.enums.BasicActionType.REQUEST_DETAILS;
+import static com.arplanet.template.log.enums.BasicActionType.RESPONSE_METADATA;
+
 @RequiredArgsConstructor
 @Slf4j
 public class LoggingFilter extends OncePerRequestFilter {
@@ -54,7 +57,7 @@ public class LoggingFilter extends OncePerRequestFilter {
             rawData.put("request_body", requestBody);
         }
 
-        logger.info("Request Details", rawData);
+        logger.info("Request Details", REQUEST_DETAILS, rawData);
     }
 
     private boolean isJsonRequest(HttpServletRequest request) {
@@ -67,7 +70,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         responseData.put("statusCode", response.getStatus());
         responseData.put("headers", getResponseHeaders(response));
 
-        logger.info("Response Metadata", responseData);
+        logger.info("Response Metadata", RESPONSE_METADATA, responseData);
     }
 
     private String getFullURL(HttpServletRequest request) {

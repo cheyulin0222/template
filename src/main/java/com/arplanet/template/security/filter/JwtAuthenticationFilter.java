@@ -18,7 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
-import static com.arplanet.template.exception.ErrorType.AUTHORITY;
+import static com.arplanet.template.exception.ErrorType.AUTH;
+import static com.arplanet.template.log.enums.BasicActionType.AUTHENTICATION;
 
 @Component
 @RequiredArgsConstructor
@@ -49,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.error("Could not authenticate user", e, AUTHORITY);
+            logger.error("Could not authenticate user", AUTHENTICATION, e, AUTH);
         }
 
         filterChain.doFilter(request, response);

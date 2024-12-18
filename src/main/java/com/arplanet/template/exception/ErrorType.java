@@ -7,7 +7,7 @@ public enum ErrorType {
 
     REQUEST("請求錯誤"),
     DATABASE("資料存取錯誤"),
-    AUTHORITY("驗證失敗"),
+    AUTH("驗證失敗"),
     BUSINESS("商業邏輯檢核錯誤"),
     SYSTEM("系統錯誤");
 

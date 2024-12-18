@@ -23,64 +23,65 @@ public class Logger {
     private final LogContext logContext;
     private final ObjectMapper objectMapper;
 
-    public void info(String message) {
-        log(LogLevel.INFO, message, null, null);
+    public void info(String message, LoggingActionType actionType) {
+        log(LogLevel.INFO, message, actionType, null, null);
     }
 
-    public void info(String message, Map<String, Object> context) {
-        log(LogLevel.INFO, message, context, null);
+    public void info(String message, LoggingActionType actionType, Map<String, Object> context) {
+        log(LogLevel.INFO, message, actionType, context, null);
     }
 
-    public void error(String message, ErrorType errorType) {
+    public void error(String message, LoggingActionType actionType, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
                 .message(message)
                 .errorType(errorType)
                 .build();
 
-        log(LogLevel.ERROR, message, null, errorData);
+        log(LogLevel.ERROR, message, actionType, null, errorData);
     }
 
-    public void error(String message, Map<String, Object> payload, ErrorType errorType) {
+    public void error(String message, LoggingActionType actionType, Map<String, Object> payload, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
                 .message(message)
                 .errorType(errorType)
                 .build();
 
-        log(LogLevel.ERROR, message, payload, errorData);
+        log(LogLevel.ERROR, message, actionType, payload, errorData);
     }
 
-    public void error(String message, Throwable error, ErrorType errorType) {
+    public void error(String message, LoggingActionType actionType, Throwable error, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
                 .message(message + " | " + error.getMessage())
                 .errorType(errorType)
                 .stackTrace(Arrays.toString(error.getStackTrace()))
                 .build();
 
-        log(LogLevel.ERROR, message, null, errorData);
+        log(LogLevel.ERROR, message, actionType, null, errorData);
     }
 
-    public void error(String message, Throwable error, Map<String, Object> context, ErrorType errorType) {
+    public void error(String message, LoggingActionType actionType, Throwable error, Map<String, Object> context, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
                 .message(message + " | " + error.getMessage())
                 .errorType(errorType)
                 .stackTrace(Arrays.toString(error.getStackTrace()))
                 .build();
 
-        log(LogLevel.ERROR, message, context, errorData);
+        log(LogLevel.ERROR, message, actionType, context, errorData);
     }
 
-    private void log(LogLevel level, String message, Map<String, Object> context, ErrorData errorData) {
+    private void log(LogLevel level, String message, LoggingActionType actionType, Map<String, Object> context, ErrorData errorData) {
         try {
             LogMessage logMessage = LogMessage.builder()
+                    .logSn(logContext.getLogSn())
                     .projectId(logContext.getProjectId())
                     .stage(logContext.getActiveProfile())
                     .instanceId(logContext.getInstanceId())
                     .sessionId(logContext.getSessionId())
                     .requestId(logContext.getRequestId())
-                    .logSn(logContext.getLogSn())
                     .method(logContext.getMethod())
                     .uri(logContext.getURI())
                     .logLevel(level.name().toLowerCase())
+                    .actionType(actionType.getAction())
                     .className(logContext.getClassName())
                     .methodName(logContext.getMethodName())
                     .context(context)

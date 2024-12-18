@@ -6,6 +6,8 @@ import com.arplanet.template.res.ErrorResponse;
 import com.arplanet.template.utils.ClassTool;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -24,8 +26,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.arplanet.template.exception.ErrorType.*;
+import static com.arplanet.template.log.enums.BasicActionType.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
@@ -41,7 +45,17 @@ public class ExceptionHandleAdvice {
 
         String errMsg = extractedBindingResult(ex.getBindingResult());
 
-        logger.error(errMsg, ex, REQUEST);
+        logger.error(errMsg, REQUEST_VALIDATION, ex, REQUEST);
+
+        return wrapperExceptionResponse(BAD_REQUEST, errMsg);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationError(HttpServletRequest req,ConstraintViolationException ex) {
+
+        String errMsg = extractedConstraintViolations(ex.getConstraintViolations());
+
+        logger.error(errMsg, REQUEST_VALIDATION, ex, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
@@ -52,14 +66,14 @@ public class ExceptionHandleAdvice {
 
         String errMsg = extractedBindingResult(ex.getBindingResult());
 
-        logger.error(errMsg, ex, REQUEST);
+        logger.error(errMsg, REQUEST_VALIDATION, ex, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse>  handleValidationError(HttpServletRequest req,HttpMessageNotReadableException ex) {
-        logger.error(ex.getMessage(), ex, REQUEST);
+        logger.error(ex.getMessage(), REQUEST_VALIDATION, ex, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, ExceptionUtils.getRootCauseMessage(ex));
     }
@@ -93,10 +107,27 @@ public class ExceptionHandleAdvice {
 
     }
 
+    private String extractedConstraintViolations(Set<ConstraintViolation<?>> violations) {
+
+        int index = 0;
+        int size = violations.size();
+        StringBuilder sb = new StringBuilder();
+        for (ConstraintViolation<?> constraintViolation : violations) {
+            var filename = constraintViolation.getPropertyPath();
+            sb.append(" ").append(filename).append(" : ").append(constraintViolation.getMessage());
+            if (index != size - 1) {
+                sb.append(";");
+            }
+            index++;
+        }
+
+        return sb.toString();
+    }
+
 
     @ExceptionHandler(TemplateException.class)
     public ResponseEntity<ErrorResponse> handleDataAcesssException(HttpServletRequest req, TemplateException ex){
-        logger.error(ex.getMessage(), ex, BUSINESS);
+        logger.error(ex.getMessage(), ex.getActionType(), ex, BUSINESS);
 
         return wrapperExceptionResponse(INTERNAL_SERVER_ERROR , ex.getCode().message());
     }
@@ -104,14 +135,14 @@ public class ExceptionHandleAdvice {
 
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ErrorResponse> handleDataAcesssException(HttpServletRequest req,DataAccessException ex){
-        logger.error(ex.getMessage(), ex, DATABASE);
+        logger.error(ex.getMessage(), DATABASE_ACCESS, ex, DATABASE);
         return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
     }
 
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnknowException(HttpServletRequest req,Exception ex){
-        logger.error(ex.getMessage(), ex, SYSTEM);
+        logger.error(ex.getMessage(), UNKNOWN, ex, SYSTEM);
 
         return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
     }
