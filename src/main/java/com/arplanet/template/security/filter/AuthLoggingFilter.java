@@ -20,8 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static com.arplanet.template.exception.ErrorType.SYSTEM;
-import static com.arplanet.template.log.enums.BasicActionType.REQUEST_DETAILS;
-import static com.arplanet.template.log.enums.BasicActionType.RESPONSE_METADATA;
+import static com.arplanet.template.log.enums.BasicActionType.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -63,14 +62,14 @@ public class AuthLoggingFilter extends OncePerRequestFilter {
                 maskSensitiveFields(objectNode);
                 HashMap<String, Object> sensitiveData = new HashMap<>();
                 sensitiveData.put("request_body", objectNode);
-                logger.info("Request Details", REQUEST_DETAILS, sensitiveData);
+                logger.info("Get request details", GET_REQUEST_DETAILS, sensitiveData);
             }
 
         } catch (Exception e) {
-            logger.error("Failed to process sensitive data", REQUEST_DETAILS, e, SYSTEM);
+            logger.error("Failed to process sensitive data", GET_REQUEST_DETAILS, e, SYSTEM);
         }
 
-        logger.info("Request Details", REQUEST_DETAILS, rawData);
+        logger.info("Get request details", GET_REQUEST_DETAILS, rawData);
     }
 
     private void maskSensitiveFields(ObjectNode objectNode) {
@@ -109,10 +108,10 @@ public class AuthLoggingFilter extends OncePerRequestFilter {
 
     private void logResponse(HttpServletResponse response) {
         HashMap<String, Object> responseData = new HashMap<>();
-        responseData.put("statusCode", response.getStatus());
+        responseData.put("status_code", response.getStatus());
         responseData.put("headers", getResponseHeaders(response));
 
-        logger.info("Response Metadata", RESPONSE_METADATA, responseData);
+        logger.info("Get response metadata", GET_RESPONSE_METADATA, responseData);
     }
 
     private Map<String, String> getResponseHeaders(HttpServletResponse response) {

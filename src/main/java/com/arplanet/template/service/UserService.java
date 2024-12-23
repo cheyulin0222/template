@@ -1,5 +1,8 @@
 package com.arplanet.template.service;
 
+import com.arplanet.template.exception.ApiServiceException;
+import com.arplanet.template.exception.enums.UserErrorCode;
+import com.arplanet.template.log.Logger;
 import com.arplanet.template.repository.UserRepository;
 import com.arplanet.template.domain.User;
 import com.arplanet.template.res.UserCreateResponse;
@@ -10,12 +13,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import static com.arplanet.template.exception.ErrorType.AUTH;
+import static com.arplanet.template.log.enums.UserAcionType.CREATE_USER;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Logger logger;
 
     public UserCreateResponse createUser(String username, String password) {
 
@@ -23,7 +30,8 @@ public class UserService {
         Optional<User> optional = userRepository.findByEmail(username);
 
         if (optional.isPresent()) {
-            throw new RuntimeException("帳號已存在");
+            logger.error("帳號已存在", CREATE_USER, AUTH);
+            throw new ApiServiceException(UserErrorCode._001, CREATE_USER);
         }
 
         User user = User.builder()

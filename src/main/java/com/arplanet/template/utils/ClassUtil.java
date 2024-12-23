@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 
 @Slf4j
-public class ClassTool {
+public class ClassUtil {
 
     public static HashMap<String , Field> getAllField(Object model ) {
 

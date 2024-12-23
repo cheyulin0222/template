@@ -108,7 +108,7 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-                .map(SecurityUser::new)  // 包裝成 SecurityUser
+                .map(SecurityUser::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 

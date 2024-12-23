@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static com.arplanet.template.exception.ErrorType.AUTH;
-import static com.arplanet.template.log.enums.BasicActionType.AUTHENTICATION;
+import static com.arplanet.template.log.enums.BasicActionType.AUTHENTICATE_USER;
 
 @Component
 @RequiredArgsConstructor
@@ -30,10 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(
-            @NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
             String token = jwtVerifyService.extractToken(request);
@@ -50,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.error("Could not authenticate user", AUTHENTICATION, e, AUTH);
+            logger.error("Could not authenticate user", AUTHENTICATE_USER, e, AUTH);
         }
 
         filterChain.doFilter(request, response);

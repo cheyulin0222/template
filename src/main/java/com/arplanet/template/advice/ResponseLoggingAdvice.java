@@ -14,7 +14,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.util.HashMap;
 
-import static com.arplanet.template.log.enums.BasicActionType.RESPONSE_BODY;
+import static com.arplanet.template.log.enums.BasicActionType.GET_RESPONSE_BODY;
 
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class ResponseLoggingAdvice implements ResponseBodyAdvice<Object> {
 
             responseData.put("response_body", body);
 
-            logger.info("Response Body", RESPONSE_BODY, responseData);
+            logger.info("Get response body", GET_RESPONSE_BODY, responseData);
         }
 
         return body;

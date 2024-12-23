@@ -1,13 +1,15 @@
 package com.arplanet.template.security;
 
+import com.arplanet.template.log.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,11 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.arplanet.template.exception.ErrorType.AUTH;
+import static com.arplanet.template.exception.ErrorType.SYSTEM;
+import static com.arplanet.template.log.enums.JwtActionType.INIT_PUBLIC_KEY;
+import static com.arplanet.template.log.enums.JwtActionType.VERIFY_JWT;
 
 @Slf4j
 @Service
@@ -35,6 +42,7 @@ public class JwtVerifyService {
     private Map<String, PublicKey> publicKeys;
 
     private final ObjectMapper mapper;
+    private final Logger logger;
 
     @PostConstruct
     public void init() {
@@ -43,8 +51,9 @@ public class JwtVerifyService {
             publicKeys.put("key1", loadPublicKey(publicKeyResource1));
             publicKeys.put("key2", loadPublicKey(publicKeyResource2));
         } catch (Exception e) {
-            log.error("Error initializing public keys", e);
-            throw new RuntimeException("Could not initialize public keys", e);
+            logger.error("Failed to initialize JWT public keys", INIT_PUBLIC_KEY, e, SYSTEM);
+            throw new BeanInitializationException("Failed to initialize JWT public keys", e);
+
         }
     }
 
@@ -54,8 +63,12 @@ public class JwtVerifyService {
             String keyId = signedJWT.getHeader().getKeyID();
 
             PublicKey publicKey = publicKeys.get(keyId);
+
             if (publicKey == null) {
-                throw new RuntimeException("Invalid key ID: " + keyId);
+                HashMap<String, Object> context = new HashMap<>();
+                context.put("key_id", keyId);
+                logger.error("Invalid key ID", VERIFY_JWT, context, AUTH);
+                throw new JwtException("Invalid key ID");
             }
 
             return Jwts.parser()
@@ -63,9 +76,19 @@ public class JwtVerifyService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+
+        } catch (MalformedJwtException e) {
+            logger.error("Invalid token format", VERIFY_JWT, AUTH);
+            throw new JwtException("Invalid token format");
+        } catch (SignatureException e) {
+            log.error("JWT signature verification failed", e);
+            throw new JwtException("Invalid token signature");
+        } catch (ExpiredJwtException e) {
+            log.error("JWT token expired", e);
+            throw new JwtException("Token expired");
         } catch (Exception e) {
             log.error("Error verifying JWT token", e);
-            throw new RuntimeException("Could not verify token", e);
+            throw new JwtException("Token verification failed");
         }
     }
 

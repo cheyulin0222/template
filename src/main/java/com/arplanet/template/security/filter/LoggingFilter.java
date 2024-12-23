@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -16,8 +17,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static com.arplanet.template.log.enums.BasicActionType.REQUEST_DETAILS;
-import static com.arplanet.template.log.enums.BasicActionType.RESPONSE_METADATA;
+import static com.arplanet.template.log.enums.BasicActionType.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -57,20 +57,20 @@ public class LoggingFilter extends OncePerRequestFilter {
             rawData.put("request_body", requestBody);
         }
 
-        logger.info("Request Details", REQUEST_DETAILS, rawData);
+        logger.info("Request Details", GET_REQUEST_DETAILS, rawData);
     }
 
     private boolean isJsonRequest(HttpServletRequest request) {
         String contentType = request.getContentType();
-        return contentType != null && contentType.toLowerCase().contains("application/json");
+        return contentType != null && contentType.toLowerCase().contains(MediaType.APPLICATION_JSON_VALUE);
     }
 
     private void logResponse(HttpServletResponse response) {
         HashMap<String, Object> responseData = new HashMap<>();
-        responseData.put("statusCode", response.getStatus());
+        responseData.put("status_code", response.getStatus());
         responseData.put("headers", getResponseHeaders(response));
 
-        logger.info("Response Metadata", RESPONSE_METADATA, responseData);
+        logger.info("Response Metadata", GET_RESPONSE_METADATA, responseData);
     }
 
     private String getFullURL(HttpServletRequest request) {

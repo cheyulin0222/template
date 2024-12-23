@@ -22,6 +22,7 @@ import java.util.Map;
         "method",
         "uri",
         "log_level",
+        "action_type",
         "class_name",
         "method_name",
         "message",

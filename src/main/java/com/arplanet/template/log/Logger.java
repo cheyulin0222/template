@@ -1,6 +1,7 @@
 package com.arplanet.template.log;
 
 import com.arplanet.template.exception.ErrorType;
+import com.arplanet.template.log.enums.LoggingActionType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -40,13 +41,13 @@ public class Logger {
         log(LogLevel.ERROR, message, actionType, null, errorData);
     }
 
-    public void error(String message, LoggingActionType actionType, Map<String, Object> payload, ErrorType errorType) {
+    public void error(String message, LoggingActionType actionType, Map<String, Object> context, ErrorType errorType) {
         ErrorData errorData = ErrorData.builder()
                 .message(message)
                 .errorType(errorType)
                 .build();
 
-        log(LogLevel.ERROR, message, actionType, payload, errorData);
+        log(LogLevel.ERROR, message, actionType, context, errorData);
     }
 
     public void error(String message, LoggingActionType actionType, Throwable error, ErrorType errorType) {
@@ -108,13 +109,13 @@ public class Logger {
                 }
                 case ERROR -> {
                     if (enableMessageLogging) {
-                        log.info("{}", message);
+                        log.error("{}", message);
                     }
                     log.error("{}", jsonLog);
                 }
                 default -> {
                     if (enableMessageLogging) {
-                        log.info("{}", message);
+                        log.debug("{}", message);
                     }
                     log.debug("{}", jsonLog);
                 }

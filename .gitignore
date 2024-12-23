@@ -35,5 +35,8 @@ build/
 # 忽略 logs 目錄
 logs/
 
+# 忽略 env 目錄
+env/
+
 # 忽略 application-dev.properties 文件
-src/main/resources/application-dev.properties
+src/main/resources/env/application-dev.properties

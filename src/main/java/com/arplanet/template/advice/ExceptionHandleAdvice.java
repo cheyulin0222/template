@@ -1,9 +1,10 @@
 package com.arplanet.template.advice;
 
-import com.arplanet.template.exception.TemplateException;
+import com.arplanet.template.exception.RegistrationException;
+import com.arplanet.template.exception.ApiServiceException;
 import com.arplanet.template.log.Logger;
 import com.arplanet.template.res.ErrorResponse;
-import com.arplanet.template.utils.ClassTool;
+import com.arplanet.template.utils.ClassUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
@@ -15,6 +16,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -30,8 +32,7 @@ import java.util.Set;
 
 import static com.arplanet.template.exception.ErrorType.*;
 import static com.arplanet.template.log.enums.BasicActionType.*;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -45,7 +46,7 @@ public class ExceptionHandleAdvice {
 
         String errMsg = extractedBindingResult(ex.getBindingResult());
 
-        logger.error(errMsg, REQUEST_VALIDATION, ex, REQUEST);
+        logger.error(errMsg, VALIDATE_REQUEST, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
@@ -55,7 +56,7 @@ public class ExceptionHandleAdvice {
 
         String errMsg = extractedConstraintViolations(ex.getConstraintViolations());
 
-        logger.error(errMsg, REQUEST_VALIDATION, ex, REQUEST);
+        logger.error(errMsg, VALIDATE_REQUEST, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
@@ -66,22 +67,57 @@ public class ExceptionHandleAdvice {
 
         String errMsg = extractedBindingResult(ex.getBindingResult());
 
-        logger.error(errMsg, REQUEST_VALIDATION, ex, REQUEST);
+        logger.error(errMsg, VALIDATE_REQUEST, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, errMsg);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse>  handleValidationError(HttpServletRequest req,HttpMessageNotReadableException ex) {
-        logger.error(ex.getMessage(), REQUEST_VALIDATION, ex, REQUEST);
+        logger.error(ex.getMessage(), VALIDATE_REQUEST, REQUEST);
 
         return wrapperExceptionResponse(BAD_REQUEST, ExceptionUtils.getRootCauseMessage(ex));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse>  handleValidationError(HttpServletRequest req,BadCredentialsException ex) {
+        logger.error(ex.getMessage(), AUTHENTICATE_USER, AUTH);
+
+        return wrapperExceptionResponse(UNAUTHORIZED, ExceptionUtils.getRootCauseMessage(ex));
+    }
+
+    @ExceptionHandler(RegistrationException.class)
+    public ResponseEntity<ErrorResponse>  handleValidationError(HttpServletRequest req,RegistrationException ex) {
+        logger.error(ex.getMessage(), REGISTER_USER, AUTH);
+
+        return wrapperExceptionResponse(CONFLICT, ExceptionUtils.getRootCauseMessage(ex));
+    }
+
+    @ExceptionHandler(ApiServiceException.class)
+    public ResponseEntity<ErrorResponse> handleDataAcesssException(HttpServletRequest req, ApiServiceException ex){
+        logger.error(ex.getMessage(), ex.getActionType(), BUSINESS);
+
+        return wrapperExceptionResponse(INTERNAL_SERVER_ERROR , ex.getCode().message());
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDataAcesssException(HttpServletRequest req,DataAccessException ex){
+        logger.error(ex.getMessage(), ACCESS_DATABASE, ex, DATABASE);
+        return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnknowException(HttpServletRequest req,Exception ex){
+
+        logger.error(ex.getMessage(), UNKNOWN, ex, SYSTEM);
+
+        return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
     }
 
     private String extractedBindingResult(BindingResult bindingResult) {
 
         StringBuilder errorMessagesData = new StringBuilder();
-        HashMap<String , Field> Fields = ClassTool.getAllField(Objects.requireNonNull(bindingResult.getTarget()));
+        HashMap<String , Field> Fields = ClassUtil.getAllField(Objects.requireNonNull(bindingResult.getTarget()));
 
         for (ObjectError error : bindingResult.getAllErrors()) {
             if(!errorMessagesData.isEmpty()) {
@@ -122,29 +158,6 @@ public class ExceptionHandleAdvice {
         }
 
         return sb.toString();
-    }
-
-
-    @ExceptionHandler(TemplateException.class)
-    public ResponseEntity<ErrorResponse> handleDataAcesssException(HttpServletRequest req, TemplateException ex){
-        logger.error(ex.getMessage(), ex.getActionType(), ex, BUSINESS);
-
-        return wrapperExceptionResponse(INTERNAL_SERVER_ERROR , ex.getCode().message());
-    }
-
-
-    @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ErrorResponse> handleDataAcesssException(HttpServletRequest req,DataAccessException ex){
-        logger.error(ex.getMessage(), DATABASE_ACCESS, ex, DATABASE);
-        return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
-    }
-
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnknowException(HttpServletRequest req,Exception ex){
-        logger.error(ex.getMessage(), UNKNOWN, ex, SYSTEM);
-
-        return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
     }
 
     public static ResponseEntity<ErrorResponse> wrapperExceptionResponse(HttpStatus status, String data){

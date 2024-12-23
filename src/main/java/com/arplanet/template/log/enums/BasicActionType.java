@@ -1,15 +1,14 @@
 package com.arplanet.template.log.enums;
 
-import com.arplanet.template.log.LoggingActionType;
-
 public enum BasicActionType implements LoggingActionType {
 
-    REQUEST_DETAILS("request.details"),
-    RESPONSE_METADATA("response.metadata"),
-    RESPONSE_BODY("response.body"),
-    REQUEST_VALIDATION("request.validation"),
-    DATABASE_ACCESS("database.access"),
-    AUTHENTICATION("authentication"),
+    GET_REQUEST_DETAILS("request.get.details"),
+    GET_RESPONSE_METADATA("response.get.metadata"),
+    GET_RESPONSE_BODY("response.get.body"),
+    VALIDATE_REQUEST("request.validate"),
+    ACCESS_DATABASE("database.access"),
+    AUTHENTICATE_USER("auth.authenticate"),
+    REGISTER_USER("auth.register"),
     UNKNOWN("unknown");
 
     private final String action;
