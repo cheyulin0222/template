@@ -130,9 +130,32 @@
 			<artifactId>logback-awslogs-appender</artifactId>
 			<version>1.6.0</version>
 		</dependency>
+
+		<!-- MapStruct 依賴 -->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>1.5.5.Final</version> <!-- 確保使用最新版本 -->
+		</dependency>
+		<!-- MapStruct Processor (僅用於編譯時生成代碼) -->
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>1.5.5.Final</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>application-dev.properties</exclude>
+					<exclude>logback-spring.xml</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -144,6 +167,22 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<annotationProcessorPaths>
+						<annotationProcessorPath>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>1.5.5.Final</version>
+						</annotationProcessorPath>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -183,29 +222,20 @@
 				<resources>
 					<resource>
 						<directory>src/main/resources</directory>
-						<excludes>
-							<exclude>config/**</exclude>
-						</excludes>
 					</resource>
 				</resources>
 			</build>
 		</profile>
-
 		<profile>
-			<id>default</id>
-			<activation>
-				<property>
-					<name>!env.SPRING_PROFILES_ACTIVE</name>
-					<value>dev</value>
-				</property>
-			</activation>
+			<id>!dev</id>
 			<build>
 				<resources>
 					<resource>
 						<directory>src/main/resources</directory>
 						<excludes>
-							<exclude>config/**</exclude>
-							<exclude>env/**</exclude>
+							<exclude>application*.yml</exclude>
+							<exclude>application*.properties</exclude>
+							<exclude>logback-spring.xml</exclude>
 						</excludes>
 					</resource>
 				</resources>
