@@ -1,17 +1,17 @@
-package com.arplanets.template.req;
+package com.arplanets.template.dto.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class UserCreateRequest {
+public class RoleForUserAddRequest {
 
     @Schema(description = "帳號")
     @NotBlank
-    private String email;
+    private String username;
 
-    @Schema(description = "密碼")
+    @Schema(description = "角色")
     @NotBlank
-    private String password;
+    private String role;
 }

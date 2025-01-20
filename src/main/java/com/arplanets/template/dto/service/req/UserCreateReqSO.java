@@ -1,4 +1,4 @@
-package com.arplanets.template.res;
+package com.arplanets.template.dto.service.req;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserGetResponse {
+public class UserCreateReqSO {
 
     private String email;
 
     private String password;
+
+    private int age;
 }

@@ -1,6 +1,6 @@
 package com.arplanets.template.controller;
 
-import com.arplanets.template.res.ServerInfoGetResponse;
+import com.arplanets.template.dto.res.ServerInfoGetResponse;
 import com.arplanets.template.service.ServerInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

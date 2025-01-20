@@ -1,4 +1,4 @@
-package com.arplanets.template.res;
+package com.arplanets.template.dto.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

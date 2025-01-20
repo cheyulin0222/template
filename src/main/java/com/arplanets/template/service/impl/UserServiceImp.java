@@ -1,15 +1,17 @@
 package com.arplanets.template.service.impl;
 
-import com.arplanets.template.dto.UserServiceDto;
+import com.arplanets.template.dto.service.req.UserCreateReqSO;
+import com.arplanets.template.dto.service.req.UserSearchReqSO;
+import com.arplanets.template.dto.service.req.UserUpdateReqSO;
+import com.arplanets.template.dto.service.res.UserCreateResSO;
+import com.arplanets.template.dto.service.res.UserGetResSO;
+import com.arplanets.template.dto.service.res.UserUpdateResSO;
 import com.arplanets.template.exception.TemplateApiException;
 import com.arplanets.template.exception.enums.UserErrorCode;
 import com.arplanets.template.log.Logger;
 import com.arplanets.template.mapper.UserMapper;
 import com.arplanets.template.repository.UserRepository;
 import com.arplanets.template.domain.User;
-import com.arplanets.template.req.UserSearchRequest;
-import com.arplanets.template.res.UserCreateResponse;
-import com.arplanets.template.res.UserGetResponse;
 import com.arplanets.template.service.UserService;
 import com.arplanets.template.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +40,7 @@ public class UserServiceImp implements UserService {
     private final UserSpecification userSpecification;
 
     @Override
-    public UserServiceDto getUser(String id) {
+    public UserGetResSO getUser(String id) {
         Optional<User> option = userRepository.findById(id);
         
         if (option.isEmpty()) {
@@ -48,13 +50,13 @@ public class UserServiceImp implements UserService {
 
         User user = option.get();
 
-        return userMapper.userToUserServiceDto(user);
+        return userMapper.userToUserGetResSO(user);
     }
 
     @Override
-    public UserServiceDto createUser(UserServiceDto request) {
+    public UserCreateResSO createUser(UserCreateReqSO userCreateReqSO) {
 
-        String email = request.getEmail();
+        String email = userCreateReqSO.getEmail();
 
         Optional<User> optional = userRepository.findByEmail(email);
 
@@ -63,16 +65,16 @@ public class UserServiceImp implements UserService {
             throw new TemplateApiException(UserErrorCode._001, CREATE_USER);
         }
 
-        User user = userMapper.userServiceDtoToUser(request, passwordEncoder);
+        User user = userMapper.userCreateReqSOToUser(userCreateReqSO, passwordEncoder);
 
         User returnUser = userRepository.save(user);
 
-        return userMapper.userToUserServiceDto(returnUser);
+        return userMapper.userCreateRequestToUserCreateReqSO(returnUser);
     }
 
     @Override
-    public UserServiceDto updateUser(UserServiceDto request) {
-        String email = request.getEmail();
+    public UserUpdateResSO updateUser(UserUpdateReqSO userUpdateReqSO) {
+        String email = userUpdateReqSO.getEmail();
 
         Optional<User> optional = userRepository.findByEmail(email);
 
@@ -81,33 +83,33 @@ public class UserServiceImp implements UserService {
             throw new TemplateApiException(UserErrorCode._002, UPDATE_USER);
         }
 
-        User user = userMapper.userServiceDtoToUser(request, passwordEncoder);
+        User user = userMapper.userUpdateReqSOToUser(userUpdateReqSO, passwordEncoder);
 
         User returnUser = userRepository.save(user);
 
-        return userMapper.userToUserServiceDto(returnUser);
+        return userMapper.userToUserUpdateResSO(returnUser);
     }
 
 
 
     @Override
-    public List<UserServiceDto> getAll() {
+    public List<UserGetResSO> getAll() {
         return userRepository.findAll().stream()
-                .map(userMapper::userToUserServiceDto)
+                .map(userMapper::userToUserGetResSO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Page<UserServiceDto> getAllPaged(PageRequest pageRequest) {
+    public Page<UserGetResSO> getAllPaged(PageRequest pageRequest) {
         return userRepository.findAll(pageRequest)
-                .map(userMapper::userToUserServiceDto);
+                .map(userMapper::userToUserGetResSO);
     }
 
     @Override
-    public Page<UserServiceDto> searchUser(UserServiceDto request, PageRequest pageRequest) {
+    public Page<UserGetResSO> searchUser(UserSearchReqSO request, PageRequest pageRequest) {
         Specification<User> spec = userSpecification.createSpecification(request);
         return userRepository.findAll(spec, pageRequest)
-                .map(userMapper::userToUserServiceDto);
+                .map(userMapper::userToUserGetResSO);
     }
 
     @Override

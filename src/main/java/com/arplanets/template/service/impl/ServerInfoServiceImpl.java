@@ -2,7 +2,7 @@ package com.arplanets.template.service.impl;
 
 import com.arplanets.template.bo.ServerInfoContext;
 import com.arplanets.template.cofig.ServerConfig;
-import com.arplanets.template.res.ServerInfoGetResponse;
+import com.arplanets.template.dto.res.ServerInfoGetResponse;
 import com.arplanets.template.service.ServerInfoService;
 import com.arplanets.template.utils.ServerInfoUtil;
 import jakarta.servlet.http.HttpServletRequest;

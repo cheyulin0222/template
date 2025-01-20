@@ -1,17 +1,17 @@
 package com.arplanets.template.controller;
 
-import com.arplanets.template.casbin.CasbinService;
 import com.arplanets.template.enums.OAuth2Type;
 import com.arplanets.template.exception.TemplateApiException;
 import com.arplanets.template.exception.RegistrationException;
 import com.arplanets.template.log.Logger;
 import com.arplanets.template.mapper.UserMapper;
 import com.arplanets.template.oauth2.OAuth2Provider;
-import com.arplanets.template.req.AuthenticationRequest;
-import com.arplanets.template.req.OAuth2LoginRequest;
-import com.arplanets.template.res.JwtResponse;
+import com.arplanets.template.dto.req.AuthenticationRequest;
+import com.arplanets.template.dto.req.OAuth2LoginRequest;
+import com.arplanets.template.dto.res.JwtResponse;
 import com.arplanets.template.security.JwtAuthService;
 import com.arplanets.template.security.SecurityUser;
+import com.arplanets.template.service.UserService;
 import com.arplanets.template.service.impl.UserServiceImp;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,8 +45,7 @@ public class AuthController {
     private final ApplicationContext applicationContext;
     private final AuthenticationManager authenticationManager;
     private final JwtAuthService jwtAuthService;
-    private final CasbinService casbinService;
-    private final UserServiceImp userServiceImp;
+    private final UserService userService;
     private final UserMapper userMapper;
 
     @PostMapping(value = "/register", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -55,9 +54,7 @@ public class AuthController {
 
         try {
 
-            var user = userServiceImp.createUser(userMapper.authenticationRequestToUserServiceDto(request));
-
-            casbinService.addRoleForUser(user.getEmail(), "user");
+            var user = userService.createUser(userMapper.authenticationRequestToUserCreateReqSO(request));
 
             List<String> roles = Collections.singletonList("user");
 
@@ -90,14 +87,8 @@ public class AuthController {
 
             SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
 
-            List<String> roles = casbinService.getRolesForUser(securityUser.getUsername());
 
-            if (roles.isEmpty()) {
-                casbinService.addRoleForUser(securityUser.getUsername(), "user");
-                roles = Collections.singletonList("user");
-            }
-
-            String jwt = jwtAuthService.generateToken(loginRequest.getUsername(), roles);
+            String jwt = jwtAuthService.generateToken(loginRequest.getUsername(), null);
 
             return ResponseEntity.ok(JwtResponse.builder().token(jwt).build());
 
@@ -116,19 +107,5 @@ public class AuthController {
                     Map.of("username", loginRequest.getUsername()));
             throw new RuntimeException("System error occurred");
         }
-    }
-
-    @PostMapping(value = "/oauth2/login", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "第三方登入")
-    public ResponseEntity<JwtResponse> oauth2Login(
-            @RequestParam OAuth2Type provider,
-            @RequestBody OAuth2LoginRequest request) {
-
-        OAuth2Provider oauth2Provider  = applicationContext.getBean(
-                provider.getProviderBeanName(),
-                OAuth2Provider.class
-        );
-
-        return ResponseEntity.ok(oauth2Provider.login(request));
     }
 }

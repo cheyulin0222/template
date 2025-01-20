@@ -1,6 +1,6 @@
 package com.arplanets.template.service;
 
-import com.arplanets.template.res.ServerInfoGetResponse;
+import com.arplanets.template.dto.res.ServerInfoGetResponse;
 
 public interface ServerInfoService {
 

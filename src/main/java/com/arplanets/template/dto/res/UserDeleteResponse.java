@@ -1,4 +1,4 @@
-package com.arplanets.template.res;
+package com.arplanets.template.dto.res;
 
 import lombok.Builder;
 

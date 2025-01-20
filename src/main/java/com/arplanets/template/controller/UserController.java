@@ -1,16 +1,16 @@
 package com.arplanets.template.controller;
 
-import com.arplanets.template.casbin.CasbinAuthorize;
-import com.arplanets.template.casbin.CasbinResource;
-import com.arplanets.template.dto.UserServiceDto;
+import com.arplanets.template.dto.service.req.UserCreateReqSO;
+import com.arplanets.template.dto.service.req.UserSearchReqSO;
+import com.arplanets.template.dto.service.req.UserUpdateReqSO;
 import com.arplanets.template.mapper.UserMapper;
-import com.arplanets.template.req.UserCreateRequest;
-import com.arplanets.template.req.UserSearchRequest;
-import com.arplanets.template.req.UserUpdateRequest;
-import com.arplanets.template.res.UserCreateResponse;
-import com.arplanets.template.res.UserDeleteResponse;
-import com.arplanets.template.res.UserGetResponse;
-import com.arplanets.template.res.UserUpdateResponse;
+import com.arplanets.template.dto.req.UserCreateRequest;
+import com.arplanets.template.dto.req.UserSearchRequest;
+import com.arplanets.template.dto.req.UserUpdateRequest;
+import com.arplanets.template.dto.res.UserCreateResponse;
+import com.arplanets.template.dto.res.UserDeleteResponse;
+import com.arplanets.template.dto.res.UserGetResponse;
+import com.arplanets.template.dto.res.UserUpdateResponse;
 import com.arplanets.template.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -31,7 +31,6 @@ import static com.arplanets.template.enums.ResultMessage.*;
 
 @RestController
 @RequestMapping("/api/users")
-//@CasbinResource("User")
 @RequiredArgsConstructor
 @Tag(name = "Users (使用者) API")
 public class UserController {
@@ -49,17 +48,16 @@ public class UserController {
 
         var result = userService.getUser(id);
 
-        return ResponseEntity.ok(userMapper.userServiceDtoToUserGetResponse(result));
+        return ResponseEntity.ok(userMapper.userGetResSOToUserGetResponse(result));
     }
 
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "查詢所有使用者", security = @SecurityRequirement(name = "bearerAuth"))
-    @CasbinAuthorize(action = "read")
     public ResponseEntity<List<UserGetResponse>> getUsers() {
 
         var result = userService.getAll();
 
-        return ResponseEntity.ok(userMapper.userServiceDtoToUserGetResponse(result));
+        return ResponseEntity.ok(userMapper.userGetResSOToUserGetResponse(result));
     }
 
     @GetMapping(value = "/page", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -72,7 +70,7 @@ public class UserController {
     ) {
         PageRequest pageRequest = PageRequest.of(page, size, direction, sortBy);
         var result = userService.getAllPaged(pageRequest)
-                        .map(userMapper::userServiceDtoToUserGetResponse);
+                        .map(userMapper::userGetResSOToUserGetResponse);
 
         return ResponseEntity.ok(result);
     }
@@ -88,36 +86,34 @@ public class UserController {
     ) {
         PageRequest pageRequest = PageRequest.of(page, size, direction, sortBy);
 
-        UserServiceDto userServiceDto = userMapper.userSearchRequestToUserServiceDto(request);
+        UserSearchReqSO userSearchReqSO = userMapper.userSearchRequestToUserServiceDto(request);
 
-        var result = userService.searchUser(userServiceDto, pageRequest)
-                        .map(userMapper::userServiceDtoToUserGetResponse);
+        var result = userService.searchUser(userSearchReqSO, pageRequest)
+                        .map(userMapper::userGetResSOToUserGetResponse);
 
         return ResponseEntity.ok(result);
     }
 
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "新增使用者", security = @SecurityRequirement(name = "bearerAuth"))
-//    @CasbinAuthorize(action = "write")
     public ResponseEntity<UserCreateResponse> createUser(@RequestBody @Valid UserCreateRequest request) {
 
-        UserServiceDto userServiceDto = userMapper.userCreatRequestToUserServiceDto(request);
+        UserCreateReqSO userCreateReqSO = userMapper.userCreateRequestToUserCreateReqSO(request);
 
-        var result = userService.createUser(userServiceDto);
+        var result = userService.createUser(userCreateReqSO);
 
-        return ResponseEntity.ok(userMapper.userServiceDtoToUserCreateResponse(result, CREATE_SUCCESSFUL));
+        return ResponseEntity.ok(userMapper.userCreateResSOToUserCreateResponse(result, CREATE_SUCCESSFUL));
     }
 
     @PutMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "修改使用者", security = @SecurityRequirement(name = "bearerAuth"))
-//    @CasbinAuthorize(action = "write")
     public ResponseEntity<UserUpdateResponse> updateUser(@RequestBody @Valid UserUpdateRequest request) {
 
-        UserServiceDto userServiceDto = userMapper.userUpdateRequestToUserServiceDto(request);
+        UserUpdateReqSO userServiceDto = userMapper.userUpdateRequestToUserUpdateReqSO(request);
 
         var result = userService.updateUser(userServiceDto);
 
-        return ResponseEntity.ok(userMapper.userServiceDtoToUserUpdateResponse(result, UPDATE_SUCCESSFUL));
+        return ResponseEntity.ok(userMapper.userUpdateResSOToUserUpdateResponse(result, UPDATE_SUCCESSFUL));
     }
 
     @DeleteMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})

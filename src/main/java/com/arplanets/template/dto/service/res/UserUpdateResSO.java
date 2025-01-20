@@ -1,4 +1,4 @@
-package com.arplanets.template.dto;
+package com.arplanets.template.dto.service.res;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,19 +11,13 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserServiceDto {
+public class UserUpdateResSO {
 
     private String email;
 
-    private String password;
-
-    private int age;
+    private Integer age;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    private UserServiceAdvancedSearchDto advancedSearchInfo;
-
-
 }

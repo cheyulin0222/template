@@ -1,4 +1,4 @@
-package com.arplanets.template.dto;
+package com.arplanets.template.dto.service.req;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,15 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserServiceAdvancedSearchDto {
+public class UserSearchReqSO {
+
+    private String email;
+
+    private Integer age;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     private Integer ageStart;
 

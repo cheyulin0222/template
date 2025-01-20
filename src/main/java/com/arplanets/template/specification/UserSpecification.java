@@ -1,8 +1,7 @@
 package com.arplanets.template.specification;
 
 import com.arplanets.template.domain.User;
-import com.arplanets.template.dto.UserServiceDto;
-import com.arplanets.template.req.UserSearchRequest;
+import com.arplanets.template.dto.service.req.UserSearchReqSO;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -14,7 +13,7 @@ import java.util.List;
 @Component
 public class UserSpecification {
 
-    public Specification<User> createSpecification(UserServiceDto request) {
+    public Specification<User> createSpecification(UserSearchReqSO request) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -31,19 +30,19 @@ public class UserSpecification {
 //            }
 
             // 年齡範圍
-            if (request.getAdvancedSearchInfo().getAgeStart() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("age"), request.getAdvancedSearchInfo().getAgeStart()));
+            if (request.getAgeStart() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("age"), request.getAgeStart()));
             }
-            if (request.getAdvancedSearchInfo().getAgeEnd() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("age"), request.getAdvancedSearchInfo().getAgeEnd()));
+            if (request.getAgeEnd() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("age"), request.getAgeEnd()));
             }
 
             // 創建時間範圍
-            if (request.getAdvancedSearchInfo().getCreatedAtStart() != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), request.getAdvancedSearchInfo().getCreatedAtStart()));
+            if (request.getCreatedAtStart() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), request.getCreatedAtStart()));
             }
-            if (request.getAdvancedSearchInfo().getCreatedAtEnd() != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), request.getAdvancedSearchInfo().getCreatedAtEnd()));
+            if (request.getCreatedAtEnd() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), request.getCreatedAtEnd()));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

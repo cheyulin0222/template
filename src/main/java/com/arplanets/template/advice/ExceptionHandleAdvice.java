@@ -3,7 +3,7 @@ package com.arplanets.template.advice;
 import com.arplanets.template.exception.RegistrationException;
 import com.arplanets.template.exception.TemplateApiException;
 import com.arplanets.template.log.Logger;
-import com.arplanets.template.res.ErrorResponse;
+import com.arplanets.template.dto.res.ErrorResponse;
 import com.arplanets.template.utils.ClassUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
@@ -161,10 +161,6 @@ public class ExceptionHandleAdvice {
 
         Logger.error(ex.getMessage(), UNKNOWN, SYSTEM, ex);
 
-        if (isAuthRelated(req)) {
-            return wrapperExceptionResponse(INTERNAL_SERVER_ERROR , ex.getMessage());
-        }
-
         return wrapperExceptionResponse(INTERNAL_SERVER_ERROR ,ExceptionUtils.getRootCauseMessage(ex));
     }
 
@@ -224,7 +220,5 @@ public class ExceptionHandleAdvice {
 
     }
 
-    private boolean isAuthRelated(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/auth");
-    }
+
 }
