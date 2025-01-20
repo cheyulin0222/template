@@ -96,7 +96,14 @@
         </layout>
         <logGroupName>${logGroupName}</logGroupName>
         <logStreamName>${logStreamPrefix}-${date}</logStreamName>
+        <!-- CloudWatch 每個 Log Stream 每秒最多可以呼叫 5 次 PutLogEvents -->
+        <!-- CloudWatch 單次請求上限 1 MB -->
+        <!-- CloudWatch 每個日誌事件上限 256 KB -->
+        <!-- CloudWatch 單次事件上限 10,000 條 -->
+        <!-- 一次批次可以發送的最大日誌事件數量 -->
+        <!-- 累積的日誌事件達到 50 條時，就會觸發一次發送 -->
         <maxBatchLogEvents>50</maxBatchLogEvents>
+        <!-- 定義了強制發送日誌的最大時間間隔(30秒) -->
         <maxFlushTimeMillis>30000</maxFlushTimeMillis>
         <region>${awsRegion}</region>
         <accessKeyId>${awsAccessKey}</accessKeyId>
