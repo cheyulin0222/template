@@ -13,5 +13,6 @@ public class UserUpdateResponse {
     @Schema(description = "帳號")
     private String email;
 
+    @Schema(description = "修改結果")
     private String message;
 }

@@ -14,5 +14,6 @@ public class UserCreateResponse {
     @Schema(description = "帳號")
     private String email;
 
+    @Schema(description = "新增結果")
     private String message;
 }
